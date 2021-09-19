@@ -155,7 +155,6 @@ int main()
 
     cpu6502->exec(4, mem);
 
-    std::cout << "CPU finished execution" << std::endl;
     delete cpu6502;
 
     return 0;
