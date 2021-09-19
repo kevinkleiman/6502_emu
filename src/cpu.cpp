@@ -6,7 +6,7 @@
 void h6502::CPU::reset(Mem& mem)
 {
     PC = 0x0000;    // set program counter to 0xFFFC ??
-    SP = 0x100;     // set stack pointer to 0x100 idk why yet c64 wiki??
+    SP = 0x100;     // set stack pointer to 0x100 via c64 wiki??
     mem.reset_mem();    // zero all memory
     CF = ZF = IF = DF = BF = OF = NF = 0;       // zero out flags
     A = X = Y = 0;      // zero out registers
@@ -66,77 +66,112 @@ void h6502::CPU::exec(int cycles, Mem& mem)
 
             // LDA instruction set
             case LDA_IM:
+            {
                 A = fetch_byte(mem, cycles, PC);
                 check_flags(A);
-                break;
+            } break;
 
             case LDA_ZP:
+            {
                 A = fetch_byte(mem, cycles, fetch_zero_page(mem, cycles, PC));
                 check_flags(A);
-                break;
+            } break;
 
             case LDA_AB:
+            {
                 A = fetch_byte(mem, cycles, fetch_word(mem, cycles));
                 check_flags(A);
-                break;
+            } break;
 
             case LDA_ZP_X:
+            {
                 A = fetch_byte(mem, cycles, zp_reg_add(cycles, X, fetch_byte(mem, cycles, PC)));
                 check_flags(A);
-                break;
+            } break;
 
-                // LDX instruction set
+            // LDX instruction set
             case LDX_IM:
+            {
                 X = fetch_byte(mem, cycles, PC);
                 check_flags(X);
-                break;
+            } break;
 
             case LDX_ZP:
+            {
                 X = fetch_byte(mem, cycles, fetch_zero_page(mem, cycles, PC));
                 check_flags(X);
-                break;
+            } break;
 
             case LDX_AB:
+            {
                 X = fetch_byte(mem, cycles, fetch_word(mem, cycles));
                 check_flags(X);
-                break;
+            } break;
 
             case LDX_ZP_Y:
+            {
                 X = fetch_byte(mem, cycles, zp_reg_add(cycles, Y, fetch_byte(mem, cycles, PC)));
                 check_flags(Y);
-                break;
+            } break;
 
 
-                // LDY instruction set
+            // LDY instruction set
             case LDY_IM:
+            {
                 Y = fetch_byte(mem, cycles, PC);
                 check_flags(Y);
-                break;
+            } break;
 
             case LDY_ZP:
+            {
                 Y = fetch_byte(mem, cycles, fetch_zero_page(mem, cycles, PC));
                 check_flags(Y);
-                break;
+            } break;
 
             case LDY_AB:
+            {
                 Y = fetch_byte(mem, cycles, fetch_word(mem, cycles));
                 check_flags(Y);
-                break;
+            } break;
 
             case LDY_ZP_X:
+            {
                 Y = fetch_byte(mem, cycles, zp_reg_add(cycles, X, fetch_byte(mem, cycles, PC)));
-                break;
+            } break;
+
+            case CPX_IM:
+            {
+                uint8_t cmp = fetch_byte(mem, cycles, PC);
+                CF = (cmp >= X) ? 1 : 0;
+                ZF = (cmp == X) ? 1 : 0;
+            } break;
+
+            case CPX_ZP:
+            {
+                uint8_t cmp = fetch_byte(mem, cycles, fetch_byte(mem, cycles, fetch_byte(mem, cycles, PC)));
+                CF = (cmp >= X) ? 1 : 0;
+                ZF = (cmp == X) ? 1 : 0;
+            } break;
+
+            case CPX_AB:
+            {
+                uint8_t cmp = fetch_byte(mem, cycles, fetch_word(mem, cycles));
+                CF = (cmp >= X) ? 1 : 0;
+                ZF = (cmp == X) ? 1 : 0;
+            } break;
 
 
-                // NOP
+            // NOP
             case NOP:
+            {
                 PC++;
                 cycles--;
-                break;
+            } break;
 
             default:
+            {
                 std::cout << "CPU6502: Invalid Instruction" << std::endl;
-                return;
+            } return;
         }
     }
 }
@@ -149,9 +184,8 @@ int main()
     cpu6502->reset(mem);
     mem.data[0x0000] = h6502::CPU::LDX_IM;
     mem.data[0x0000 + 1] = 0x0F;
-    mem.data[0x0000 + 2] = h6502::CPU::LDY_ZP_X;
-    mem.data[0x0000 + 3] = 0x80;
-    mem.data[0x008F] = 0xCA;
+    mem.data[0x0000 + 2] = h6502::CPU::CPX_IM;
+    mem.data[0x0000 + 3] = 0x0F;
 
     cpu6502->exec(4, mem);
 
