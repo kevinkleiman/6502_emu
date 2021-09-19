@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/kxkle/Documents/Projects/6502_emu/src/cpu.cpp
+iostream
+-
+cpu.h
+C:/Users/kxkle/Documents/Projects/6502_emu/src/cpu.h
+
+C:/Users/kxkle/Documents/Projects/6502_emu/src/cpu.h
+iostream
+-
+memory.h
+C:/Users/kxkle/Documents/Projects/6502_emu/src/memory.h
+
+C:/Users/kxkle/Documents/Projects/6502_emu/src/memory.cpp
+iostream
+C:/Users/kxkle/Documents/Projects/6502_emu/src/iostream
+memory.h
+C:/Users/kxkle/Documents/Projects/6502_emu/src/memory.h
+
+C:/Users/kxkle/Documents/Projects/6502_emu/src/memory.h
+
