@@ -1,3 +1,0 @@
-C:/Users/kxkle/Documents/Projects/6502_emu/cmake-build-debug/CMakeFiles/6502_emu.dir
-C:/Users/kxkle/Documents/Projects/6502_emu/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/kxkle/Documents/Projects/6502_emu/cmake-build-debug/CMakeFiles/rebuild_cache.dir
