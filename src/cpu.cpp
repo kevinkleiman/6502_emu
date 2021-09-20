@@ -94,7 +94,7 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 check_flags(A);
             } break;
 
-                // LDX instruction set
+            // LDX instruction set
             case LDX_IM:
             {
                 X = fetch_byte(mem, cycles, PC);
@@ -120,7 +120,7 @@ void h6502::CPU::exec(int cycles, Mem& mem)
             } break;
 
 
-                // LDY instruction set
+            // LDY instruction set
             case LDY_IM:
             {
                 Y = fetch_byte(mem, cycles, PC);
@@ -214,7 +214,7 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 PC = addr;
             } break;
 
-                // NOP
+            // NOP
             case NOP:
             {
                 cycles--;
