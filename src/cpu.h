@@ -9,7 +9,7 @@ namespace h6502 {
 }
 
 struct h6502::CPU {
-    // Setup registers
+    // Registers
     uint16_t PC;    // program counter
     uint16_t SP;    // low 8 bits of of next free location [0x0100, 0x1FF]
     uint8_t A;      // accumulator
@@ -42,6 +42,13 @@ struct h6502::CPU {
             CPX_IM = 0xE0,
             CPX_ZP = 0xE4,
             CPX_AB = 0xEC,
+            CPY_IM = 0xC0,
+            CPY_ZP = 0xC4,
+            CPY_AB = 0xCC,
+            DEX = 0xCA,
+            DEY = 0x88,
+            INX = 0xE8,
+            INY = 0xC8,
             ORA_IM = 0x09,
             LSR_A = 0x4A,
             PHA = 0x48,
