@@ -3,8 +3,8 @@
 
 void h6502::CPU::reset(Mem& mem)
 {
-    PC = 0x0000;    // set program counter to 0xFFFC ??
-    SP = 0x100;     // set stack pointer to 0x100 via c64 wiki??
+    PC = 0x0000;    // set program counter to 0x0 temporarily
+    SP = 0x100;     // set stack pointer to 0x100-0x01FF (page 0x01)
     mem.reset_mem();    // zero all memory
     CF = ZF = IF = DF = BF = OF = NF = 0;       // zero out flags
     A = X = Y = 0;      // zero out registers
@@ -14,6 +14,12 @@ void h6502::CPU::check_flags(uint8_t reg)
 {
     if (reg == 0) ZF = 1;
     if (0b10000000 & reg) NF = 1;
+}
+
+void h6502::CPU::set_compare_flags(uint8_t cmp, uint8_t reg)
+{
+    CF = (cmp <= reg) ? 1 : 0;
+    ZF = (cmp == reg) ? 1 : 0;
 }
 
 void h6502::CPU::write_byte(Mem& mem, int& cycles, uint32_t addr, uint8_t data)
@@ -88,7 +94,7 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 check_flags(A);
             } break;
 
-            // LDX instruction set
+                // LDX instruction set
             case LDX_IM:
             {
                 X = fetch_byte(mem, cycles, PC);
@@ -114,7 +120,7 @@ void h6502::CPU::exec(int cycles, Mem& mem)
             } break;
 
 
-            // LDY instruction set
+                // LDY instruction set
             case LDY_IM:
             {
                 Y = fetch_byte(mem, cycles, PC);
@@ -141,43 +147,37 @@ void h6502::CPU::exec(int cycles, Mem& mem)
             case CPX_IM:
             {
                 uint8_t cmp = fetch_byte(mem, cycles, PC);
-                CF = (cmp <= X) ? 1 : 0;
-                ZF = (cmp == X) ? 1 : 0;
+                set_compare_flags(cmp, X);
             } break;
 
             case CPX_ZP:
             {
                 uint8_t cmp = fetch_byte(mem, cycles, fetch_byte(mem, cycles, PC));
-                CF = (cmp <= X) ? 1 : 0;
-                ZF = (cmp == X) ? 1 : 0;
+                set_compare_flags(cmp, X);
             } break;
 
             case CPX_AB:
             {
                 uint8_t cmp = fetch_byte(mem, cycles, fetch_word(mem, cycles));
-                CF = (cmp <= X) ? 1 : 0;
-                ZF = (cmp == X) ? 1 : 0;
+                set_compare_flags(cmp, X);
             } break;
 
             case CPY_IM:
             {
                 uint8_t cmp = fetch_byte(mem, cycles, PC);
-                CF = (cmp <= Y) ? 1 : 0;
-                ZF = (cmp == Y) ? 1 : 0;
+                set_compare_flags(cmp, Y);
             } break;
 
             case CPY_ZP:
             {
                 uint8_t cmp = fetch_byte(mem, cycles, fetch_byte(mem, cycles, PC));
-                CF = (cmp <= Y) ? 1 : 0;
-                ZF = (cmp == Y) ? 1 : 0;
+                set_compare_flags(cmp, Y);
             } break;
 
             case CPY_AB:
             {
                 uint8_t cmp = fetch_byte(mem, cycles, fetch_word(mem, cycles));
-                CF = (cmp <= Y) ? 1 : 0;
-                ZF = (cmp == Y) ? 1 : 0;
+                set_compare_flags(cmp, Y);
             } break;
 
             case DEX:
@@ -208,7 +208,13 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 check_flags(Y);
             } break;
 
-            // NOP
+            case JMP_AB:
+            {
+                uint16_t addr = fetch_word(mem, cycles);
+                PC = addr;
+            } break;
+
+                // NOP
             case NOP:
             {
                 cycles--;
@@ -225,17 +231,17 @@ void h6502::CPU::exec(int cycles, Mem& mem)
 int main()
 {
     Mem mem;
-    h6502::CPU* cpu6502 = new h6502::CPU();
+    auto* cpu6502 = new h6502::CPU();
 
     cpu6502->reset(mem);
-    mem.data[0x0000] = h6502::CPU::INX;
-    mem.data[0x0000 + 1] = h6502::CPU::NOP;
-    mem.data[0x0000 + 2] = h6502::CPU::NOP;
-    mem.data[0x0000 + 3] = h6502::CPU::NOP;
-    mem.data[0x0000 + 4] = h6502::CPU::LDA_IM;
-    mem.data[0x0000 + 5] = 0x69;
+    mem.data[0x6969] = INX;
+    mem.data[0x0000] = LDX_IM;
+    mem.data[0x0000 + 1] = 0x01;
+    mem.data[0x0000 + 2] = JMP_AB;
+    mem.data[0x0000 + 3] = 0x69;
+    mem.data[0x0000 + 4] = 0x69;
 
-    cpu6502->exec(10, mem);
+    cpu6502->exec(7, mem);
     delete cpu6502;
 
     return 0;

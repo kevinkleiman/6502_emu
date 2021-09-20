@@ -92,6 +92,9 @@
 		<Unit filename="C:/Users/kxkle/Documents/Projects/6502_emu/src/memory.h">
 			<Option target="6502_emu"/>
 		</Unit>
+		<Unit filename="C:/Users/kxkle/Documents/Projects/6502_emu/src/opcodes.h">
+			<Option target="6502_emu"/>
+		</Unit>
 		<Unit filename="C:/Users/kxkle/Documents/Projects/6502_emu/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

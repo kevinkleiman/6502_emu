@@ -4,6 +4,7 @@
 CMakeFiles/6502_emu.dir/src/cpu.cpp.obj: ../src/cpu.cpp
 CMakeFiles/6502_emu.dir/src/cpu.cpp.obj: ../src/cpu.h
 CMakeFiles/6502_emu.dir/src/cpu.cpp.obj: ../src/memory.h
+CMakeFiles/6502_emu.dir/src/cpu.cpp.obj: ../src/opcodes.h
 
 CMakeFiles/6502_emu.dir/src/memory.cpp.obj: ../src/memory.cpp
 CMakeFiles/6502_emu.dir/src/memory.cpp.obj: ../src/memory.h
