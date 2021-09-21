@@ -22,11 +22,11 @@ void h6502::CPU::set_compare_flags(uint8_t cmp, uint8_t reg)
     ZF = (cmp == reg) ? 1 : 0;
 }
 
-void h6502::CPU::write_byte(Mem& mem, int& cycles, uint32_t addr, uint8_t data)
+void h6502::CPU::push_word(Mem& mem, int& cycles, uint8_t data) const
 {
-    PC++;
-    cycles--;
-    mem.data[addr] = data;
+    mem.data[SP] = (data & 0xF);
+    mem.data[SP + 1] = (data >> 4);
+    cycles -= 2;
 }
 
 uint8_t h6502::CPU::fetch_zero_page(Mem& mem, int& cycles, uint8_t zp_addr)
@@ -60,12 +60,18 @@ uint16_t h6502::CPU::fetch_word(Mem& mem, int& cycles)
     return word;
 }
 
+uint16_t h6502::CPU::pop_word(Mem& mem, int& cycles) const
+{
+    cycles -= 2;
+    return mem.data[SP + 1] << 8 | mem.data[SP];
+}
+
 void h6502::CPU::exec(int cycles, Mem& mem)
 {
     while (cycles > 0)
     {
         uint8_t instruction = fetch_byte(mem, cycles, PC);
-        if (cycles == 0) break;     // check cycles after instruction fetch cycle... gotta change later this seems dumb
+        if (cycles <= 0) break;     // check cycles after instruction fetch cycle... gotta change later this seems dumb
                                     // used for 2 cycle implied instructions mainly
         switch (instruction)
         {
@@ -214,6 +220,22 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 PC = addr;
             } break;
 
+            case JSR_AB:
+            {
+                uint16_t addr = fetch_word(mem, cycles);
+                push_word(mem, cycles, PC - 1);
+                PC = addr;
+                cycles--;
+            } break;
+
+            case RTS:
+            {
+                uint16_t ret_addr = pop_word(mem, cycles);
+                PC = ret_addr;
+                PC++;
+                cycles--;
+            } break;
+
             // NOP
             case NOP:
             {
@@ -235,13 +257,13 @@ int main()
 
     cpu6502->reset(mem);
     mem.data[0x6969] = INX;
-    mem.data[0x0000] = LDX_IM;
-    mem.data[0x0000 + 1] = 0x01;
-    mem.data[0x0000 + 2] = JMP_AB;
-    mem.data[0x0000 + 3] = 0x69;
-    mem.data[0x0000 + 4] = 0x69;
+    mem.data[0x6969 + 1] = RTS;
+    mem.data[0x0000] = JSR_AB;
+    mem.data[0x0000 + 1] = 0x69;
+    mem.data[0x0000 + 2] = 0x69;
+    mem.data[0x0000 + 3] = INX;
 
-    cpu6502->exec(7, mem);
+    cpu6502->exec(18, mem);
     delete cpu6502;
 
     return 0;

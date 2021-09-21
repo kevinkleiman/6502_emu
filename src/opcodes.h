@@ -28,6 +28,8 @@ static constexpr uint8_t
         INY = 0xC8,
         JMP_AB = 0x4C,
         JMP_IN = 0x6C,
+        JSR_AB = 0x20,
+        RTS = 0x60,
         ORA_IM = 0x09,
         LSR_A = 0x4A,
         PHA = 0x48,

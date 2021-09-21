@@ -29,13 +29,14 @@ struct h6502::CPU {
     void reset(Mem& mem);
     void check_flags(uint8_t reg);
     void set_compare_flags(uint8_t cmp, uint8_t reg);
-    void write_byte(Mem& mem, int& cycles, uint32_t addr, uint8_t data);
+    void push_word(Mem &mem, int &cycles, uint8_t data) const;
     void exec(int cycles, Mem& mem);
 
     uint8_t fetch_zero_page(Mem& mem, int& cycles, uint8_t zp_addr);
     uint8_t fetch_byte(Mem& mem, int& cycles, uint32_t addr);
 
     uint16_t fetch_word(Mem& mem, int& cycles);
+    uint16_t pop_word(Mem &mem, int &cycles) const;
 
     static uint8_t zp_reg_add(int &cycles, uint8_t reg, uint8_t operand);
 
