@@ -37,5 +37,3 @@ static constexpr uint8_t
         PHP = 0x08,
         PLP = 0x68,
         NOP = 0xEA;
-
-void check_opcode(uint8_t opcode);
