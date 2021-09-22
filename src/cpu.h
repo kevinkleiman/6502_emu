@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include "memory.h"
-#include "opcodes.h"
 
 namespace h6502 {
     struct CPU;

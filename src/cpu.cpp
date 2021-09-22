@@ -1,5 +1,6 @@
 #include <iostream>
 #include "cpu.h"
+#include "opcodes.h"
 
 void h6502::CPU::reset(Mem& mem)
 {
@@ -75,7 +76,6 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                                     // used for 2 cycle implied instructions mainly
         switch (instruction)
         {
-            // LDA instruction set
             case LDA_IM:
             {
                 A = fetch_byte(mem, cycles, PC);
@@ -100,7 +100,6 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 check_flags(A);
             } break;
 
-            // LDX instruction set
             case LDX_IM:
             {
                 X = fetch_byte(mem, cycles, PC);
@@ -125,8 +124,6 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 check_flags(Y);
             } break;
 
-
-            // LDY instruction set
             case LDY_IM:
             {
                 Y = fetch_byte(mem, cycles, PC);
@@ -236,7 +233,6 @@ void h6502::CPU::exec(int cycles, Mem& mem)
                 cycles--;
             } break;
 
-            // NOP
             case NOP:
             {
                 cycles--;

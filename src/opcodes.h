@@ -1,6 +1,7 @@
 #pragma once
 
 #include "iostream"
+#include "cpu.h"
 
 // Contains all opcodes... will refactor later
 static constexpr uint8_t
@@ -36,3 +37,5 @@ static constexpr uint8_t
         PHP = 0x08,
         PLP = 0x68,
         NOP = 0xEA;
+
+void check_opcode(uint8_t opcode);
