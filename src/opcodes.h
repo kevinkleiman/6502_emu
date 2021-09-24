@@ -36,4 +36,6 @@ static constexpr uint8_t
         PLA = 0x68,
         PHP = 0x08,
         PLP = 0x68,
+        SEC = 0x38,
+        CLC = 0x18,
         NOP = 0xEA;
