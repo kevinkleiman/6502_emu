@@ -4,53 +4,68 @@
 
 void h6502::CPU::reset(Mem& mem)
 {
-    PC = 0x0000;    // set program counter to 0x0 temporarily
+    PC = 0x101;    // set program counter to 0x101 temporarily
     SP = 0x100;     // set stack pointer to 0x100-0x01FF (page 0x01)
     mem.reset_mem();    // zero all memory
     CF = ZF = IF = DF = BF = OF = NF = 0;       // zero out flags
     A = X = Y = 0;      // zero out registers
 }
 
-void h6502::CPU::check_flags(uint8_t reg)
+void h6502::CPU::checkFlags(uint8_t reg)
 {
     if (reg == 0) ZF = 1;
     if (0b10000000 & reg) NF = 1;
 }
 
-void h6502::CPU::set_compare_flags(uint8_t cmp, uint8_t reg)
+void h6502::CPU::setCompareFlags(uint8_t cmp, uint8_t reg)
 {
     CF = (cmp <= reg) ? 1 : 0;
     ZF = (cmp == reg) ? 1 : 0;
 }
 
-void h6502::CPU::push_word(Mem& mem, int& cycles, uint8_t data) const
+void h6502::CPU::pushWord(Mem& mem, int& cycles, uint8_t data)
 {
     mem.data[SP] = (data & 0xF);
-    mem.data[SP + 1] = (data >> 4);
+    mem.data[SP - 1] = (data >> 4);
+    SP -= 2;
     cycles -= 2;
 }
 
-uint8_t h6502::CPU::fetch_zero_page(Mem& mem, int& cycles, uint8_t zp_addr)
+void h6502::CPU::pushByte(Mem& mem, int& cycles, uint8_t data)
+{
+    mem.data[SP] = data;
+    SP--;
+    cycles -= 2;
+}
+
+uint8_t h6502::CPU::fetchZeroPage(Mem& mem, int& cycles, uint8_t zp_addr)
 {
     PC++;
     cycles--;
     return mem.data[zp_addr];
 }
 
-uint8_t h6502::CPU::fetch_byte(Mem& mem, int& cycles, uint32_t addr)
+uint8_t h6502::CPU::fetchByte(Mem& mem, int& cycles, uint32_t addr)
 {
     PC++;
     cycles--;
     return mem.data[addr];
 }
 
-uint8_t h6502::CPU::zp_reg_add(int& cycles, uint8_t reg, uint8_t operand)
+uint8_t h6502::CPU::popByte(Mem& mem, int& cycles)
+{
+    SP++;
+    cycles -= 2;
+    return mem.data[SP];
+}
+
+uint8_t h6502::CPU::zpRegAdd(int& cycles, uint8_t reg, uint8_t operand)
 {
     cycles--;
     return reg + operand;
 }
 
-uint16_t h6502::CPU::fetch_word(Mem& mem, int& cycles)
+uint16_t h6502::CPU::fetchWord(Mem& mem, int& cycles)
 {
     uint16_t word = mem.data[PC];
     PC++;
@@ -61,175 +76,189 @@ uint16_t h6502::CPU::fetch_word(Mem& mem, int& cycles)
     return word;
 }
 
-uint16_t h6502::CPU::pop_word(Mem& mem, int& cycles) const
+uint16_t h6502::CPU::popWord(Mem& mem, int& cycles)
 {
+    SP += 2;
+    uint16_t word = mem.data[SP - 1] << 8 | mem.data[SP];
+    mem.data[SP] = mem.data[SP - 1] = 0x0;
     cycles -= 2;
-    return mem.data[SP + 1] << 8 | mem.data[SP];
+    return word;
 }
 
 void h6502::CPU::exec(int cycles, Mem& mem)
 {
     while (cycles > 0)
     {
-        uint8_t instruction = fetch_byte(mem, cycles, PC);
+        uint8_t instruction = fetchByte(mem, cycles, PC);
         if (cycles <= 0) break;     // check cycles after instruction fetch cycle... gotta change later this seems dumb
                                     // used for 2 cycle implied instructions mainly
         switch (instruction)
         {
             case LDA_IM:
             {
-                A = fetch_byte(mem, cycles, PC);
-                check_flags(A);
+                A = fetchByte(mem, cycles, PC);
+                checkFlags(A);
             } break;
 
             case LDA_ZP:
             {
-                A = fetch_byte(mem, cycles, fetch_zero_page(mem, cycles, PC));
-                check_flags(A);
+                A = fetchByte(mem, cycles, fetchZeroPage(mem, cycles, PC));
+                checkFlags(A);
             } break;
 
             case LDA_AB:
             {
-                A = fetch_byte(mem, cycles, fetch_word(mem, cycles));
-                check_flags(A);
+                A = fetchByte(mem, cycles, fetchWord(mem, cycles));
+                checkFlags(A);
             } break;
 
             case LDA_ZP_X:
             {
-                A = fetch_byte(mem, cycles, zp_reg_add(cycles, X, fetch_byte(mem, cycles, PC)));
-                check_flags(A);
+                A = fetchByte(mem, cycles, zpRegAdd(cycles, X, fetchByte(mem, cycles, PC)));
+                checkFlags(A);
             } break;
 
             case LDX_IM:
             {
-                X = fetch_byte(mem, cycles, PC);
-                check_flags(X);
+                X = fetchByte(mem, cycles, PC);
+                checkFlags(X);
             } break;
 
             case LDX_ZP:
             {
-                X = fetch_byte(mem, cycles, fetch_zero_page(mem, cycles, PC));
-                check_flags(X);
+                X = fetchByte(mem, cycles, fetchZeroPage(mem, cycles, PC));
+                checkFlags(X);
             } break;
 
             case LDX_AB:
             {
-                X = fetch_byte(mem, cycles, fetch_word(mem, cycles));
-                check_flags(X);
+                X = fetchByte(mem, cycles, fetchWord(mem, cycles));
+                checkFlags(X);
             } break;
 
             case LDX_ZP_Y:
             {
-                X = fetch_byte(mem, cycles, zp_reg_add(cycles, Y, fetch_byte(mem, cycles, PC)));
-                check_flags(Y);
+                X = fetchByte(mem, cycles, zpRegAdd(cycles, Y, fetchByte(mem, cycles, PC)));
+                checkFlags(Y);
             } break;
 
             case LDY_IM:
             {
-                Y = fetch_byte(mem, cycles, PC);
-                check_flags(Y);
+                Y = fetchByte(mem, cycles, PC);
+                checkFlags(Y);
             } break;
 
             case LDY_ZP:
             {
-                Y = fetch_byte(mem, cycles, fetch_zero_page(mem, cycles, PC));
-                check_flags(Y);
+                Y = fetchByte(mem, cycles, fetchZeroPage(mem, cycles, PC));
+                checkFlags(Y);
             } break;
 
             case LDY_AB:
             {
-                Y = fetch_byte(mem, cycles, fetch_word(mem, cycles));
-                check_flags(Y);
+                Y = fetchByte(mem, cycles, fetchWord(mem, cycles));
+                checkFlags(Y);
             } break;
 
             case LDY_ZP_X:
             {
-                Y = fetch_byte(mem, cycles, zp_reg_add(cycles, X, fetch_byte(mem, cycles, PC)));
+                Y = fetchByte(mem, cycles, zpRegAdd(cycles, X, fetchByte(mem, cycles, PC)));
             } break;
 
             case CPX_IM:
             {
-                uint8_t cmp = fetch_byte(mem, cycles, PC);
-                set_compare_flags(cmp, X);
+                uint8_t cmp = fetchByte(mem, cycles, PC);
+                setCompareFlags(cmp, X);
             } break;
 
             case CPX_ZP:
             {
-                uint8_t cmp = fetch_byte(mem, cycles, fetch_byte(mem, cycles, PC));
-                set_compare_flags(cmp, X);
+                uint8_t cmp = fetchByte(mem, cycles, fetchByte(mem, cycles, PC));
+                setCompareFlags(cmp, X);
             } break;
 
             case CPX_AB:
             {
-                uint8_t cmp = fetch_byte(mem, cycles, fetch_word(mem, cycles));
-                set_compare_flags(cmp, X);
+                uint8_t cmp = fetchByte(mem, cycles, fetchWord(mem, cycles));
+                setCompareFlags(cmp, X);
             } break;
 
             case CPY_IM:
             {
-                uint8_t cmp = fetch_byte(mem, cycles, PC);
-                set_compare_flags(cmp, Y);
+                uint8_t cmp = fetchByte(mem, cycles, PC);
+                setCompareFlags(cmp, Y);
             } break;
 
             case CPY_ZP:
             {
-                uint8_t cmp = fetch_byte(mem, cycles, fetch_byte(mem, cycles, PC));
-                set_compare_flags(cmp, Y);
+                uint8_t cmp = fetchByte(mem, cycles, fetchByte(mem, cycles, PC));
+                setCompareFlags(cmp, Y);
             } break;
 
             case CPY_AB:
             {
-                uint8_t cmp = fetch_byte(mem, cycles, fetch_word(mem, cycles));
-                set_compare_flags(cmp, Y);
+                uint8_t cmp = fetchByte(mem, cycles, fetchWord(mem, cycles));
+                setCompareFlags(cmp, Y);
             } break;
 
             case DEX:
             {
                 X--;
                 cycles--;
-                check_flags(X);
+                checkFlags(X);
             } break;
 
             case DEY:
             {
                 Y--;
                 cycles--;
-                check_flags(Y);
+                checkFlags(Y);
             } break;
 
             case INX:
             {
                 X++;
                 cycles--;
-                check_flags(X);
+                checkFlags(X);
             } break;
 
             case INY:
             {
                 Y++;
                 cycles--;
-                check_flags(Y);
+                checkFlags(Y);
             } break;
 
             case JMP_AB:
             {
-                uint16_t addr = fetch_word(mem, cycles);
+                uint16_t addr = fetchWord(mem, cycles);
                 PC = addr;
             } break;
 
             case JSR_AB:
             {
-                uint16_t addr = fetch_word(mem, cycles);
-                push_word(mem, cycles, PC - 1);
+                uint16_t addr = fetchWord(mem, cycles);
+                pushWord(mem, cycles, PC - 1);
                 PC = addr;
                 cycles--;
             } break;
 
             case RTS:
             {
-                uint16_t ret_addr = pop_word(mem, cycles);
+                uint16_t ret_addr = popWord(mem, cycles);
                 PC = ret_addr;
                 PC++;
+                cycles--;
+            } break;
+
+            case PHA:
+            {
+                pushByte(mem, cycles, A);
+            } break;
+
+            case PLA:
+            {
+                A = popByte(mem, cycles);
                 cycles--;
             } break;
 
@@ -252,14 +281,14 @@ int main()
     auto* cpu6502 = new h6502::CPU();
 
     cpu6502->reset(mem);
-    mem.data[0x6969] = INX;
-    mem.data[0x6969 + 1] = RTS;
-    mem.data[0x0000] = JSR_AB;
-    mem.data[0x0000 + 1] = 0x69;
-    mem.data[0x0000 + 2] = 0x69;
-    mem.data[0x0000 + 3] = INX;
+    mem.data[0x101] = LDA_IM;
+    mem.data[0x101 + 1] = 0x90;
+    mem.data[0x101 + 2] = PHA;
+    mem.data[0x101 + 3] = LDA_IM;
+    mem.data[0x101 + 4] = 0x79;
+    mem.data[0x101 + 5] = PLA;
 
-    cpu6502->exec(18, mem);
+    cpu6502->exec(11, mem);
     delete cpu6502;
 
     return 0;

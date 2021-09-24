@@ -1,7 +1,6 @@
 #pragma once
 
 #include "iostream"
-#include "cpu.h"
 
 // Contains all opcodes... will refactor later
 static constexpr uint8_t
@@ -34,6 +33,7 @@ static constexpr uint8_t
         ORA_IM = 0x09,
         LSR_A = 0x4A,
         PHA = 0x48,
+        PLA = 0x68,
         PHP = 0x08,
         PLP = 0x68,
         NOP = 0xEA;

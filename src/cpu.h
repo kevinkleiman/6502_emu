@@ -26,18 +26,20 @@ struct h6502::CPU {
     uint8_t NF: 1;     // negative flag
 
     void reset(Mem& mem);
-    void check_flags(uint8_t reg);
-    void set_compare_flags(uint8_t cmp, uint8_t reg);
-    void push_word(Mem &mem, int &cycles, uint8_t data) const;
+    void checkFlags(uint8_t reg);
+    void setCompareFlags(uint8_t cmp, uint8_t reg);
+    void pushByte(Mem &mem, int &cycles, uint8_t data);
+    void pushWord(Mem &mem, int &cycles, uint8_t data);
     void exec(int cycles, Mem& mem);
 
-    uint8_t fetch_zero_page(Mem& mem, int& cycles, uint8_t zp_addr);
-    uint8_t fetch_byte(Mem& mem, int& cycles, uint32_t addr);
+    uint8_t fetchZeroPage(Mem& mem, int& cycles, uint8_t zp_addr);
+    uint8_t fetchByte(Mem& mem, int& cycles, uint32_t addr);
+    uint8_t popByte(Mem &mem, int &cycles);
 
-    uint16_t fetch_word(Mem& mem, int& cycles);
-    uint16_t pop_word(Mem &mem, int &cycles) const;
+    uint16_t fetchWord(Mem& mem, int& cycles);
+    uint16_t popWord(Mem &mem, int &cycles);
 
-    static uint8_t zp_reg_add(int &cycles, uint8_t reg, uint8_t operand);
+    static uint8_t zpRegAdd(int &cycles, uint8_t reg, uint8_t operand);
 
 };
 
